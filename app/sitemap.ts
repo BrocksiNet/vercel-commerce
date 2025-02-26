@@ -1,53 +1,56 @@
-import { getProductSeoUrls, getMenu } from 'lib/shopware';
-import { validateEnvironmentVariables } from 'lib/utils';
-import { MetadataRoute } from 'next';
+import { getProductSeoUrls, getMenu } from "lib/shopware";
+import { baseUrl, validateEnvironmentVariables } from "lib/utils";
+import type { MetadataRoute } from "next";
 
 type Route = {
   url: string;
   lastModified: string;
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-  : 'http://localhost:3000';
-
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   validateEnvironmentVariables();
 
-  const routesMap = [''].map((route) => ({
+  const routesMap = [""].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString()
+    lastModified: new Date().toISOString(),
   }));
 
-  const mainNavigationPromise = getMenu({ type: 'main-navigation' }).then((mainNavigation) =>
-    mainNavigation.map((mainNavigationItem) => ({
-      url: `${baseUrl}${mainNavigationItem.path}`,
-      lastModified: new Date().toISOString()
-    }))
+  const mainNavigationPromise = getMenu({ type: "main-navigation" }).then(
+    (mainNavigation) =>
+      mainNavigation.map((mainNavigationItem) => ({
+        url: `${baseUrl}${mainNavigationItem.path}`,
+        lastModified: new Date().toISOString(),
+      })),
   );
 
-  const footerNaivgationPromise = getMenu({ type: 'footer-navigation', depth: 2 }).then(
-    (footerNavigation) =>
-      footerNavigation.map((footerNavigationItem) => ({
-        url: `${baseUrl}${footerNavigationItem.path}`,
-        lastModified: new Date().toISOString()
-      }))
+  const footerNaivgationPromise = getMenu({
+    type: "footer-navigation",
+    depth: 2,
+  }).then((footerNavigation) =>
+    footerNavigation.map((footerNavigationItem) => ({
+      url: `${baseUrl}${footerNavigationItem.path}`,
+      lastModified: new Date().toISOString(),
+    })),
   );
   // @ToDo: currently this points to variants, would be better to point to parent products
   const productsPromise = getProductSeoUrls().then((products) =>
     products.map((product) => ({
       url: `${baseUrl}/product/${product.path}`,
-      lastModified: product.updatedAt
-    }))
+      lastModified: product.updatedAt,
+    })),
   );
 
   let fetchedRoutes: Route[] = [];
 
   try {
     fetchedRoutes = (
-      await Promise.all([productsPromise, mainNavigationPromise, footerNaivgationPromise])
+      await Promise.all([
+        productsPromise,
+        mainNavigationPromise,
+        footerNaivgationPromise,
+      ])
     ).flat();
   } catch (error) {
     throw JSON.stringify(error, null, 2);

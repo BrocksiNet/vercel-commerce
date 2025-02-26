@@ -1,15 +1,21 @@
-import { Schemas } from '#shopware';
+import type { Schemas } from "#shopware";
 
 // /** Schemas */
 
 export type RouteNames =
-  | 'frontend.account.customer-group-registration.page'
-  | 'frontend.detail.page'
-  | 'frontend.landing.page'
-  | 'frontend.navigation.page';
+  | "frontend.account.customer-group-registration.page"
+  | "frontend.detail.page"
+  | "frontend.landing.page"
+  | "frontend.navigation.page";
 
 // /** Vercel Commerce Types */
-export type Menu = { id: string; title: string; path: string; type: string; children: Menu[] };
+export type Menu = {
+  id: string;
+  title: string;
+  path: string;
+  type: string;
+  children: Menu[];
+};
 
 export type Page = {
   id: string;
@@ -22,7 +28,7 @@ export type Page = {
   updatedAt: string;
   routeName?: string;
   foreignKey?: string;
-  originalCmsPage?: Schemas['CmsPage'];
+  originalCmsPage?: Schemas["CmsPage"];
 };
 
 export type Money = {

@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { removeItem } from 'components/cart/actions';
-import { CartItem } from 'lib/shopware/types';
-import { useActionState } from 'react';
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { removeItem } from "components/cart/actions";
+import type { CartItem } from "lib/shopware/types";
+import { useActionState } from "react";
 
 export function DeleteItemButton({
   item,
-  optimisticUpdate
+  optimisticUpdate,
 }: {
   item: CartItem;
-  optimisticUpdate: (merchandiseId: string, action: 'delete') => void;
+  optimisticUpdate: (merchandiseId: string, action: "delete") => void;
 }) {
   const [message, formAction] = useActionState(removeItem, null);
   const merchandiseId = item.merchandise.id;
   // @ts-expect-error second argument is mandatory
-  const actionWithVariant = formAction.bind(null, merchandiseId);
+  const removeItemAction = formAction.bind(null, merchandiseId);
 
   return (
     <form
       action={async () => {
-        optimisticUpdate(merchandiseId, 'delete');
-        await actionWithVariant();
+        optimisticUpdate(merchandiseId, "delete");
+        removeItemAction();
       }}
     >
       <button
@@ -31,9 +31,9 @@ export function DeleteItemButton({
       >
         <XMarkIcon className="mx-[1px] h-4 w-4 text-white dark:text-black" />
       </button>
-      <p aria-live="polite" className="sr-only" role="status">
+      <output aria-live="polite" className="sr-only">
         {message}
-      </p>
+      </output>
     </form>
   );
 }

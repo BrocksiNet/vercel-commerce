@@ -1,8 +1,8 @@
-import type { Schemas } from '#shopware';
-import { ListItem } from 'components/layout/search/filter';
-import { isSeoUrls } from 'lib/shopware/helpers';
+import type { Schemas } from "#shopware";
+import type { ListItem } from "components/layout/search/filter";
+import { isSeoUrls } from "lib/shopware/helpers";
 
-import {
+import type {
   Cart,
   CartItem,
   Collection,
@@ -10,10 +10,10 @@ import {
   Page,
   Product,
   ProductOption,
-  ProductVariant
-} from './types';
+  ProductVariant,
+} from "./types";
 
-export function transformMenu(res: Schemas['Category'][], type: string) {
+export function transformMenu(res: Schemas["Category"][], type: string) {
   const menu: Menu[] = [];
 
   res.map((item) => menu.push(transformMenuItem(item, type)));
@@ -21,63 +21,70 @@ export function transformMenu(res: Schemas['Category'][], type: string) {
   return menu;
 }
 
-function transformMenuItem(item: Schemas['Category'], type: string): Menu {
+function transformMenuItem(item: Schemas["Category"], type: string): Menu {
   const path = isSeoUrls()
-    ? item.seoUrls && item.seoUrls.length > 0 && item.seoUrls[0] && item.seoUrls[0].seoPathInfo
-      ? type === 'footer-navigation'
-        ? '/cms/' + item.seoUrls[0].seoPathInfo
-        : '/search/' + item.seoUrls[0].seoPathInfo
-      : ''
-    : type === 'footer-navigation'
-      ? '/cms/' + item.id
-      : '/search/' + item.id;
+    ? item.seoUrls &&
+      item.seoUrls.length > 0 &&
+      item.seoUrls[0] &&
+      item.seoUrls[0].seoPathInfo
+      ? type === "footer-navigation"
+        ? `/cms/${item.seoUrls[0].seoPathInfo}`
+        : `/search/${item.seoUrls[0].seoPathInfo}`
+      : ""
+    : type === "footer-navigation"
+      ? `/cms/${item.id}`
+      : `/search/${item.id}`;
 
   // @ToDo: currently only footer-navigation is used for cms pages, this need to be more dynamic (shoud depending on the item)
   return {
-    id: item.id ?? '',
+    id: item.id ?? "",
     title: item.name,
     children: item.children?.map((item) => transformMenuItem(item, type)) ?? [],
     path: path,
-    type: item.children && item.children.length > 0 ? 'headline' : 'link'
+    type: item.children && item.children.length > 0 ? "headline" : "link",
   };
 }
 
 export function transformPage(
-  category: Schemas['Category'],
-  seoUrlElement?: Schemas['SeoUrl']
+  category: Schemas["Category"],
+  seoUrlElement?: Schemas["SeoUrl"],
 ): Page {
-  let plainHtmlContent;
-  if (category.cmsPage) {
-    const cmsPage: Schemas['CmsPage'] = category.cmsPage;
-    plainHtmlContent = transformToPlainHtmlContent(cmsPage);
-  }
+  const cmsPage: Schemas["CmsPage"] | undefined = category.cmsPage ?? undefined;
+  const plainHtmlContent = cmsPage ? transformToPlainHtmlContent(cmsPage) : "";
 
   return {
-    id: seoUrlElement?.id ?? category.id ?? '',
-    title: category.translated?.metaTitle ?? category.name ?? '',
-    handle: seoUrlElement?.seoPathInfo ?? category.id ?? '',
-    body: plainHtmlContent ?? category.description ?? '',
-    bodySummary: category.translated?.metaDescription ?? category.description ?? '',
+    id: seoUrlElement?.id ?? category.id ?? "",
+    title: category.translated?.metaTitle ?? category.name ?? "",
+    handle: seoUrlElement?.seoPathInfo ?? category.id ?? "",
+    body: plainHtmlContent ?? category.description ?? "",
+    bodySummary:
+      category.translated?.metaDescription ?? category.description ?? "",
     seo: {
-      title: category.translated?.metaTitle ?? category.name ?? '',
-      description: category.translated?.metaDescription ?? category.description ?? ''
+      title: category.translated?.metaTitle ?? category.name ?? "",
+      description:
+        category.translated?.metaDescription ?? category.description ?? "",
     },
-    createdAt: seoUrlElement?.createdAt ?? category.createdAt ?? '',
-    updatedAt: seoUrlElement?.updatedAt ?? category.updatedAt ?? '',
+    createdAt: seoUrlElement?.createdAt ?? category.createdAt ?? "",
+    updatedAt: seoUrlElement?.updatedAt ?? category.updatedAt ?? "",
     routeName: seoUrlElement?.routeName,
     originalCmsPage: category.cmsPage,
-    foreignKey: seoUrlElement?.foreignKey ?? category.id
+    foreignKey: seoUrlElement?.foreignKey ?? category.id,
   };
 }
 
-export function transformToPlainHtmlContent(cmsPage: Schemas['CmsPage']): string {
-  let plainHtmlContent = '';
+export function transformToPlainHtmlContent(
+  cmsPage: Schemas["CmsPage"],
+): string {
+  let plainHtmlContent = "";
 
   cmsPage.sections?.map((section) => {
     section.blocks?.map((block) => {
       block.slots?.map((slot) => {
-        if (slot.slot === 'content' && (slot.fieldConfig as { content: string })?.content) {
-          const currentContent: string = (slot?.fieldConfig as { content: string })?.content + '';
+        if (
+          slot.slot === "content" &&
+          (slot.fieldConfig as { content: string })?.content
+        ) {
+          const currentContent = `${(slot?.fieldConfig as { content: string })?.content}`;
           // we do not add content with h1, because will be added via template already
           if (!currentContent.match(/(<\/?h)([1])/)) {
             plainHtmlContent += currentContent;
@@ -91,51 +98,59 @@ export function transformToPlainHtmlContent(cmsPage: Schemas['CmsPage']): string
 }
 
 export function transformCollection(
-  resCategory: Schemas['Category'],
-  seoUrlElement?: Schemas['SeoUrl']
+  resCategory: Schemas["Category"],
+  seoUrlElement?: Schemas["SeoUrl"],
 ) {
   return {
-    handle: seoUrlElement?.seoPathInfo ?? resCategory.id ?? '',
-    title: resCategory.translated?.metaTitle ?? resCategory.name ?? '',
-    description: resCategory.description ?? '',
-    featuredImage: resCategory?.media?.url ?? '',
+    handle: seoUrlElement?.seoPathInfo ?? resCategory.id ?? "",
+    title: resCategory.translated?.metaTitle ?? resCategory.name ?? "",
+    description: resCategory.description ?? "",
+    featuredImage: resCategory?.media?.url ?? "",
     seo: {
-      title: resCategory.translated?.metaTitle ?? resCategory.name ?? '',
-      description: resCategory.translated?.metaDescription ?? resCategory.description ?? ''
+      title: resCategory.translated?.metaTitle ?? resCategory.name ?? "",
+      description:
+        resCategory.translated?.metaDescription ??
+        resCategory.description ??
+        "",
     },
     updatedAt:
       seoUrlElement?.updatedAt ??
       seoUrlElement?.createdAt ??
       resCategory.updatedAt ??
-      resCategory.createdAt
+      resCategory.createdAt,
   };
 }
 
 export function transformSubCollection(
-  category?: (Schemas['EntitySearchResult'] & { elements?: Schemas['Category'][] }) | undefined,
-  parentCollectionName?: string
+  category?:
+    | (Schemas["EntitySearchResult"] & { elements?: Schemas["Category"][] })
+    | undefined,
+  parentCollectionName?: string,
 ): Collection[] {
   const collection: Collection[] = [];
 
-  if (category?.elements && category.elements?.[0] && category.elements?.[0].children) {
+  if (category?.elements?.[0]?.children) {
     // we do not support type links at the moment and show only visible categories
     category.elements[0].children
       .filter((item) => item.visible)
-      .filter((item) => item.type !== 'link')
+      .filter((item) => item.type !== "link")
       .map((item) => {
         const handle =
-          isSeoUrls() && item.seoUrls ? findHandle(item.seoUrls, parentCollectionName) : item.id;
+          isSeoUrls() && item.seoUrls
+            ? findHandle(item.seoUrls, parentCollectionName)
+            : item.id;
         if (handle) {
           collection.push({
             handle: handle,
-            title: item.translated?.metaTitle ?? item.name ?? '',
-            description: item.description ?? '',
+            title: item.translated?.metaTitle ?? item.name ?? "",
+            description: item.description ?? "",
             seo: {
-              title: item.translated?.metaTitle ?? item.name ?? '',
-              description: item.translated?.metaDescription ?? item.description ?? ''
+              title: item.translated?.metaTitle ?? item.name ?? "",
+              description:
+                item.translated?.metaDescription ?? item.description ?? "",
             },
             childCount: item.childCount ?? 0,
-            updatedAt: item.updatedAt ?? item.createdAt ?? ''
+            updatedAt: item.updatedAt ?? item.createdAt ?? "",
           });
         }
       });
@@ -145,15 +160,18 @@ export function transformSubCollection(
 }
 
 // small function to find longest handle and to make sure parent collection name is in the path
-function findHandle(seoUrls: Schemas['SeoUrl'][], parentCollectionName?: string): string {
-  let handle: string = '';
+function findHandle(
+  seoUrls: Schemas["SeoUrl"][],
+  parentCollectionName?: string,
+): string {
+  let handle = "";
   seoUrls.map((item) => {
     if (
       !item.isDeleted &&
       item.isCanonical &&
       item.seoPathInfo &&
       item.seoPathInfo.length > handle.length &&
-      item.seoPathInfo.includes(parentCollectionName ?? '')
+      item.seoPathInfo.includes(parentCollectionName ?? "")
     ) {
       handle = item.seoPathInfo;
     }
@@ -162,17 +180,22 @@ function findHandle(seoUrls: Schemas['SeoUrl'][], parentCollectionName?: string)
   return handle;
 }
 
-export function transformCollectionToList(collection: Collection[]): ListItem[] {
+export function transformCollectionToList(
+  collection: Collection[],
+): ListItem[] {
   const listItem: ListItem[] = [];
 
   if (collection && collection.length > 0) {
     collection.map((item) => {
       // we asume that when there is not product child count it must be a cms page
-      const pagePrefix = item.childCount === 0 ? '/cms' : '/search';
-      const newHandle = item.handle.replace('Welcome-to-Shopware-Frontends/', '');
+      const pagePrefix = item.childCount === 0 ? "/cms" : "/search";
+      const newHandle = item.handle.replace(
+        "Welcome-to-Shopware-Frontends/",
+        "",
+      );
       listItem.push({
         title: item.title,
-        path: `${pagePrefix}/${newHandle}`
+        path: `${pagePrefix}/${newHandle}`,
       });
     });
   }
@@ -180,7 +203,9 @@ export function transformCollectionToList(collection: Collection[]): ListItem[] 
   return listItem;
 }
 
-export function transformProducts(res: Schemas['ProductListingResult']): Product[] {
+export function transformProducts(
+  res: Schemas["ProductListingResult"],
+): Product[] {
   const products: Product[] = [];
 
   if (res.elements && res.elements.length > 0) {
@@ -190,94 +215,119 @@ export function transformProducts(res: Schemas['ProductListingResult']): Product
   return products;
 }
 
-export function transformProduct(item: Schemas['Product']): Product {
+export function transformProduct(item: Schemas["Product"]): Product {
   const productOptions = transformOptions(item);
   const productVariants = transformVariants(item);
 
-  let path = item.parentId ?? item.id ?? '';
+  let path = item.parentId ?? item.id ?? "";
   if (isSeoUrls()) {
     path =
-      item.seoUrls && item.seoUrls.length > 0 && item.seoUrls[0] && item.seoUrls[0].seoPathInfo
+      item.seoUrls &&
+      item.seoUrls.length > 0 &&
+      item.seoUrls[0] &&
+      item.seoUrls[0].seoPathInfo
         ? item.seoUrls[0].seoPathInfo
-        : '';
+        : "";
   }
 
   return {
-    id: item.id ?? '',
+    id: item.id ?? "",
     path: path,
-    handle: item.id ?? '',
+    handle: item.id ?? "",
     availableForSale: item.available ?? false,
-    title: item.translated ? (item.translated.name ?? '') : item.name,
+    title: item.translated ? (item.translated.name ?? "") : item.name,
     description: item.translated?.metaDescription
-      ? (item.translated.metaDescription ?? '')
-      : (item.metaDescription ?? ''),
+      ? (item.translated.metaDescription ?? "")
+      : (item.metaDescription ?? ""),
     descriptionHtml: item.translated?.description
-      ? (item.translated.description ?? '')
-      : (item.description ?? ''),
+      ? (item.translated.description ?? "")
+      : (item.description ?? ""),
     options: productOptions,
     priceRange: {
       maxVariantPrice: {
-        amount: item.calculatedPrice?.totalPrice ? String(item.calculatedPrice?.totalPrice) : '0',
-        currencyCode: 'EUR'
+        amount: item.calculatedPrice?.totalPrice
+          ? String(item.calculatedPrice?.totalPrice)
+          : "0",
+        currencyCode: "EUR",
       },
       minVariantPrice: {
         amount: item.calculatedCheapestPrice?.totalPrice
           ? String(item.calculatedPrice?.totalPrice)
-          : '0',
-        currencyCode: 'EUR'
-      }
+          : "0",
+        currencyCode: "EUR",
+      },
     },
     variants: productVariants,
     merchandise: {
-      selectedOptions: []
+      selectedOptions: [],
     },
     featuredImage: {
-      url: item.cover?.media?.url ?? '',
-      altText: item.cover?.media?.translated?.alt ?? '',
-      width: item.cover?.media?.metaData?.width ? Number(item.cover?.media?.metaData?.width) : 0,
-      height: item.cover?.media?.metaData?.width ? Number(item.cover?.media?.metaData?.height) : 0
+      url: item.cover?.media?.url ?? "",
+      altText: item.cover?.media?.translated?.alt ?? "",
+      width: item.cover?.media?.metaData?.width
+        ? Number(item.cover?.media?.metaData?.width)
+        : 0,
+      height: item.cover?.media?.metaData?.width
+        ? Number(item.cover?.media?.metaData?.height)
+        : 0,
     },
     images: item.media
       ? item.media.map((img) => ({
-          url: img.media?.url ?? '',
-          altText: img.media?.translated?.alt ?? '',
-          width: img.media?.metaData?.width ? Number(img.media?.metaData?.width) : 0,
-          height: img.media?.metaData?.width ? Number(img.media?.metaData?.height) : 0
+          url: img.media?.url ?? "",
+          altText: img.media?.translated?.alt ?? "",
+          width: img.media?.metaData?.width
+            ? Number(img.media?.metaData?.width)
+            : 0,
+          height: img.media?.metaData?.width
+            ? Number(img.media?.metaData?.height)
+            : 0,
         }))
       : [],
     seo: {
-      title: item.translated?.metaTitle ?? item.translated?.name ?? item.name ?? '',
-      description: item.translated?.metaDescription ?? ''
+      title:
+        item.translated?.metaTitle ?? item.translated?.name ?? item.name ?? "",
+      description: item.translated?.metaDescription ?? "",
     },
-    tags: [''], // @ToDo: Add keywords or do we have tags?
-    updatedAt: item.updatedAt ?? ''
+    tags: [""], // @ToDo: Add keywords or do we have tags?
+    updatedAt: item.updatedAt ?? "",
   };
 }
 
-function transformOptions(parent: Schemas['Product']): ProductOption[] {
+function transformOptions(parent: Schemas["Product"]): ProductOption[] {
   // we only transform options for parents with children, ignore child products with options
   const productOptions: ProductOption[] = [];
-  if (parent.children && parent.parentId === null && parent.children.length > 0) {
+  if (
+    parent.children &&
+    parent.parentId === null &&
+    parent.children.length > 0
+  ) {
     const group: { [key: string]: string[] } = {};
     const groupId: { [key: string]: string } = {};
     parent.children.map((child) => {
       child.options?.map((option) => {
-        if (option && option.group) {
+        if (option?.group) {
           groupId[option.group.name] = option.groupId;
           group[option.group.name] = group[option.group.name]
-            ? [...new Set([...(group[option.group.name] as []), ...[option.name]])]
+            ? [
+                ...new Set([
+                  ...(group[option.group.name] as []),
+                  ...[option.name],
+                ]),
+              ]
             : [option.name];
         }
       });
     });
 
     for (const [key, value] of Object.entries(group)) {
-      for (const [currentGroupName, currentGroupId] of Object.entries(groupId)) {
+      for (const [currentGroupName, currentGroupId] of Object.entries(
+        groupId,
+      )) {
         if (key === currentGroupName) {
           productOptions.push({
             id: currentGroupId,
             name: key,
-            values: value
+            values: value,
           });
         }
       }
@@ -287,9 +337,13 @@ function transformOptions(parent: Schemas['Product']): ProductOption[] {
   return productOptions;
 }
 
-function transformVariants(parent: Schemas['Product']): ProductVariant[] {
+function transformVariants(parent: Schemas["Product"]): ProductVariant[] {
   const productVariants: ProductVariant[] = [];
-  if (parent.children && parent.parentId === null && parent.children.length > 0) {
+  if (
+    parent.children &&
+    parent.parentId === null &&
+    parent.children.length > 0
+  ) {
     parent.children.map((child) => {
       if (child.id) {
         const selectedOptions: { name: string; value: string }[] = [];
@@ -297,7 +351,7 @@ function transformVariants(parent: Schemas['Product']): ProductVariant[] {
           if (option.group) {
             selectedOptions.push({
               name: option.group.name,
-              value: option.name
+              value: option.name,
             });
           }
         });
@@ -309,9 +363,9 @@ function transformVariants(parent: Schemas['Product']): ProductVariant[] {
           price: {
             amount: child.calculatedPrice?.totalPrice
               ? String(child.calculatedPrice?.totalPrice)
-              : '0',
-            currencyCode: 'EUR'
-          }
+              : "0",
+            currencyCode: "EUR",
+          },
         };
 
         productVariants.push(currentVariant);
@@ -325,100 +379,113 @@ function transformVariants(parent: Schemas['Product']): ProductVariant[] {
 export function transformHandle(handle: string | []): string {
   let collectionName: string | [] | undefined = handle;
   if (Array.isArray(collectionName)) {
-    collectionName = collectionName.join('/');
+    collectionName = collectionName.join("/");
   }
 
-  return collectionName ?? '';
+  return collectionName ?? "";
 }
 
-export function transformCart(resCart?: Schemas['Cart']): Cart {
-  return {
-    checkoutUrl: 'https://frontends-demo.vercel.app',
-    cost: {
-      subtotalAmount: {
-        amount: resCart?.price?.positionPrice?.toString() || '0',
-        currencyCode: 'EUR'
+export function transformCart(resCart?: Schemas["Cart"]): Promise<Cart> {
+  return new Promise((resolve) => {
+    const cart: Cart = {
+      checkoutUrl: "https://frontends-demo.vercel.app",
+      cost: {
+        subtotalAmount: {
+          amount: resCart?.price?.positionPrice?.toString() || "0",
+          currencyCode: "EUR",
+        },
+        totalAmount: {
+          amount: resCart?.price?.totalPrice?.toString() || "0",
+          currencyCode: "EUR",
+        },
+        totalTaxAmount: {
+          amount: "0",
+          currencyCode: "EUR",
+        },
       },
-      totalAmount: {
-        amount: resCart?.price?.totalPrice?.toString() || '0',
-        currencyCode: 'EUR'
-      },
-      totalTaxAmount: {
-        amount: '0',
-        currencyCode: 'EUR'
-      }
-    },
-    id: resCart?.token ?? '',
-    lines:
-      resCart?.lineItems?.map((lineItem: Schemas['LineItem']) => transformLineItem(lineItem)) || [],
-    totalQuantity: resCart?.lineItems ? calculateTotalCartQuantity(resCart.lineItems) : 0
-  };
-}
-
-function calculateTotalCartQuantity(lineItems: Schemas['LineItem'][]) {
-  let totalQuantity = 0;
-  lineItems.forEach((lineItem) => {
-    totalQuantity += lineItem.quantity ?? 0;
+      id: resCart?.token ?? "",
+      lines:
+        resCart?.lineItems?.map((lineItem: Schemas["LineItem"]) =>
+          transformLineItem(lineItem),
+        ) || [],
+      totalQuantity: resCart?.lineItems
+        ? calculateTotalCartQuantity(resCart.lineItems)
+        : 0,
+    };
+    resolve(cart);
   });
+}
+
+function calculateTotalCartQuantity(lineItems: Schemas["LineItem"][]) {
+  let totalQuantity = 0;
+  for (const lineItem of lineItems) {
+    totalQuantity += lineItem.quantity ?? 0;
+  }
 
   return totalQuantity;
 }
 
-function transformLineItem(resLineItem: Schemas['LineItem']): CartItem {
+function transformLineItem(resLineItem: Schemas["LineItem"]): CartItem {
   return {
-    id: resLineItem.id || '',
+    id: resLineItem.id || "",
     quantity: resLineItem.quantity ?? 0,
     cost: {
       totalAmount: {
-        amount: resLineItem.price?.totalPrice.toString() || '',
-        currencyCode: 'EUR'
-      }
+        amount: resLineItem.price?.totalPrice.toString() || "",
+        currencyCode: "EUR",
+      },
     },
     merchandise: {
-      id: resLineItem.referencedId ?? '',
-      title: resLineItem.label ?? '',
+      id: resLineItem.referencedId ?? "",
+      title: resLineItem.label ?? "",
       selectedOptions:
         resLineItem.payload?.options?.map((option) => ({
-          name: option?.group.toString() ?? '',
-          value: option.option
+          name: option?.group.toString() ?? "",
+          value: option.option,
         })) || [],
       product: {
-        handle: resLineItem.referencedId ?? '',
-        description: resLineItem.description ?? '',
-        descriptionHtml: resLineItem.description ?? '',
-        id: resLineItem.referencedId ?? '',
+        handle: resLineItem.referencedId ?? "",
+        description: resLineItem.description ?? "",
+        descriptionHtml: resLineItem.description ?? "",
+        id: resLineItem.referencedId ?? "",
         images: [],
-        path: resLineItem.referencedId ?? '',
+        path: resLineItem.referencedId ?? "",
         seo: {
-          description: resLineItem.description ?? '',
-          title: resLineItem.label ?? ''
+          description: resLineItem.description ?? "",
+          title: resLineItem.label ?? "",
         },
         availableForSale: true,
         featuredImage: {
-          url: resLineItem.cover?.url ?? '',
-          altText: resLineItem.cover?.media?.translated?.alt ?? resLineItem.cover?.media?.alt ?? '',
+          url: resLineItem.cover?.url ?? "",
+          altText:
+            resLineItem.cover?.media?.translated?.alt ??
+            resLineItem.cover?.media?.alt ??
+            "",
           width: Number(resLineItem.cover?.metaData?.width) ?? 0,
-          height: Number(resLineItem.cover?.metaData?.height) ?? 0
+          height: Number(resLineItem.cover?.metaData?.height) ?? 0,
         },
         options: [],
         variants: [],
         merchandise: {
-          selectedOptions: []
+          selectedOptions: [],
         },
         priceRange: {
           minVariantPrice: {
-            amount: '', // @ToDo: should be correct value
-            currencyCode: 'EUR'
+            amount: "", // @ToDo: should be correct value
+            currencyCode: "EUR",
           },
           maxVariantPrice: {
-            amount: '', // @ToDo: should be correct value
-            currencyCode: 'EUR'
-          }
+            amount: "", // @ToDo: should be correct value
+            currencyCode: "EUR",
+          },
         },
         tags: [],
-        title: resLineItem.label ?? '',
-        updatedAt: resLineItem.payload?.updatedAt ?? resLineItem.payload?.createdAt ?? ''
-      }
-    }
+        title: resLineItem.label ?? "",
+        updatedAt:
+          resLineItem.payload?.updatedAt ??
+          resLineItem.payload?.createdAt ??
+          "",
+      },
+    },
   };
 }
